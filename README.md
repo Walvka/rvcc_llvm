@@ -1,0 +1,2 @@
+# rvcc_llvm
+这是一个基于rvcc项目的LLVM版本，目标是在rvcc的基础上制作一个实现LLVM前后端的项目，前端采用rvcc的chibicc，后端为RISC-V。
