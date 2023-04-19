@@ -11,21 +11,38 @@ public:
 
     // 为每个终结符都设置种类来表示
     enum TokenType{
-        TK_PUNCT,       // 操作符如： + -
+        TK_PLUS,        // 运算符 +
+        TK_MINUS,       // 运算符 -
+        TK_MUL,         // 运算符 *
+        TK_DIV,         // 运算符 /
+        TK_COMMA,       // 逗号 ,
+        TK_COLON,       // 冒号 :
+        TK_LEFTPAREN,   // 左圆括号 (
+        TK_RIGHTPAREN,  // 右圆括号 )
         TK_NUM,         // 数字
         TK_EOF,         // 文件终止符，即文件的最后
         TK_UKNOWN,      // 未知符号
     };
 
 public:
-    //获取Token的类型
-    TokenType GetType() const{
-        return type;
-    }
-
     //设置Token的类型
     void SetType(TokenType inType){
         type = inType;
+    }
+
+    //设置Token的字符串
+    void SetText(llvm::StringRef inText){
+        text = inText;
+    }
+
+    //设置Token的数值
+    void SetValue(int inValue){
+        value = inValue;
+    }
+
+    //获取Token的类型
+    TokenType GetType() const{
+        return type;
     }
 
     //获取Token的字符串
@@ -33,9 +50,14 @@ public:
         return text;
     }
 
-    //设置Token的字符串
-    void SetText(llvm::StringRef inText){
-        text = inText;
+    //获取Token的数值
+    int GetValue() const{
+        return value;
+    }
+
+    //判断当前Token类型是否是一个运算操作
+    bool IsPUNCT() const{
+        return ((type >= TK_PLUS) && (type < TK_COMMA));
     }
 
     //判断当前Token类型是否与提供的类型相同
@@ -56,6 +78,7 @@ public:
 private:
     TokenType type;         // 终结符类型
     llvm::StringRef text;   // 终结符字符串
+    int       value;        // 终结符数值
 };
 
 class Lexer{

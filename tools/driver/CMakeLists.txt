@@ -9,4 +9,6 @@ add_chilang_tool(chilang
 target_link_libraries(chilang
   PRIVATE
   chilangBasic
+  chilangLexer
+  chilangParser
 )
