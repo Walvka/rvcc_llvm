@@ -24,6 +24,14 @@ public:
         ND_SUB, // 减操作节点
         ND_MUL, // 乘操作节点
         ND_DIV, // 除操作节点
+        ND_EQ,  // ==
+        ND_NE,  // !=
+        ND_LT,  // <
+        ND_GT,  // >
+        ND_LE,  // <=
+        ND_GE,  // >=
+        ND_POS, // 正号+
+        ND_NEG, // 负号-
         ND_NUM, // 整形
     };
 
@@ -115,16 +123,40 @@ public:
         switch (Nodekind)
         {
             case ND_ADD:
-                SetSymble("+");
+                SetSymble("+ ADD");
                 break;
             case ND_SUB:
-                SetSymble("-");
+                SetSymble("- SUB");
+                break;
+            case ND_POS:
+                SetSymble("+_ POS");
+                break;
+            case ND_NEG:
+                SetSymble("-_ NEG");
                 break;
             case ND_MUL:
-                SetSymble("*");
+                SetSymble("* MUL");
                 break;
             case ND_DIV:
-                SetSymble("/");
+                SetSymble("/ DIV");
+                break;
+            case ND_EQ:
+                SetSymble("== ND_EQ");
+                break;
+            case ND_NE:
+                SetSymble("!= ND_NE");
+                break;
+            case ND_LT:
+                SetSymble("< ND_LT");
+                break;
+            case ND_GT:
+                SetSymble("> ND_GT");
+                break;
+            case ND_LE:
+                SetSymble("<= ND_LE");
+                break;
+            case ND_GE:
+                SetSymble(">= ND_GE");
                 break;
             default:
                 break;

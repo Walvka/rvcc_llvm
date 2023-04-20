@@ -15,6 +15,12 @@ public:
         TK_MINUS,       // 运算符 -
         TK_MUL,         // 运算符 *
         TK_DIV,         // 运算符 /
+        TK_EQ,          // ==
+        TK_NE,          // !=
+        TK_LT,          // <
+        TK_GT,          // >
+        TK_LE,          // <=
+        TK_GE,          // >=
         TK_COMMA,       // 逗号 ,
         TK_COLON,       // 冒号 :
         TK_LEFTPAREN,   // 左圆括号 (

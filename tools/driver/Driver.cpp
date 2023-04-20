@@ -26,11 +26,13 @@ namespace{
 
             if (node.GetLeft())
             {
+                llvm::outs() << "Left" << "\n";
                 node.GetLeft()->Accept(*this);
             }
 
             if (node.GetRight())
             {
+                llvm::outs() << "Right" << "\n";
                 node.GetRight()->Accept(*this);
             }
             llvm::outs() <<  "+++++++++++++" << "\n";

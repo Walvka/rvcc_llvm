@@ -5,8 +5,12 @@
 
 #include "llvm/Support/raw_ostream.h"
 
-// expr = mul ("+" mul | "-" mul)*
-// mul = primary ("*" primary | "/" primary)*
+// expr = equality
+// equality = relational ("==" relational | "!=" relational)*
+// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+// add = mul ("+" mul | "-" mul)*
+// mul = unary ("*" unary | "/" unary)*
+// unary = ("+" | "-") unary | primary
 // primary = "(" expr ")" | num
 class Parser{
 public:
@@ -24,7 +28,11 @@ private:
 
     AST_BaseNode*   ParseCalc();
     AST_BaseNode*   ParseExpr();
+    AST_BaseNode*   ParseEquality();
+    AST_BaseNode*   ParseRelational();
+    AST_BaseNode*   ParseAdd();
     AST_BaseNode*   ParseMul();
+    AST_BaseNode*   ParseUnary();
     AST_BaseNode*   ParsePrimary();
 
     void AddError(){

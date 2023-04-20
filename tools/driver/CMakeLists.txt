@@ -11,4 +11,5 @@ target_link_libraries(chilang
   chilangBasic
   chilangLexer
   chilangParser
+  chilangIRGen
 )

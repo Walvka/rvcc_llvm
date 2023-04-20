@@ -1,5 +1,6 @@
 #include "chilang/Lexer/Lexer.h"
 #include <cctype>
+#include <string.h>
 
 void Lexer::GetNext(Token& token){
     while (*bufferPtr && std::isspace(*bufferPtr)){
@@ -20,6 +21,23 @@ void Lexer::GetNext(Token& token){
         return;
     }
     else{
+        if(!strncmp(bufferPtr, "==", strlen("=="))){
+            InitializeToken(token, bufferPtr + 2, Token::TK_EQ);
+            return;
+        }
+        else if(!strncmp(bufferPtr, "!=", strlen("!="))){
+            InitializeToken(token, bufferPtr + 2, Token::TK_NE);
+            return;
+        }
+        else if(!strncmp(bufferPtr, "<=", strlen("<="))){
+            InitializeToken(token, bufferPtr + 2, Token::TK_LE);
+            return;
+        }
+        else if(!strncmp(bufferPtr, ">=", strlen(">="))){
+            InitializeToken(token, bufferPtr + 2, Token::TK_GE);
+            return;
+        }
+
         switch (*bufferPtr){
         case '+':
             InitializeToken(token, bufferPtr + 1, Token::TK_PLUS);
@@ -32,6 +50,12 @@ void Lexer::GetNext(Token& token){
             break;
         case '/':
             InitializeToken(token, bufferPtr + 1, Token::TK_DIV);
+            break;
+        case '<':
+            InitializeToken(token, bufferPtr + 1, Token::TK_LT);
+            break;
+        case '>':
+            InitializeToken(token, bufferPtr + 1, Token::TK_GT);
             break;
         case '(':
             InitializeToken(token, bufferPtr + 1, Token::TK_LEFTPAREN);
