@@ -5,6 +5,9 @@
 
 #include "llvm/Support/raw_ostream.h"
 
+// program = stmt*
+// stmt = exprStmt
+// exprStmt = expr ";"
 // expr = equality
 // equality = relational ("==" relational | "!=" relational)*
 // relational = add ("<" add | "<=" add | ">" add | ">=" add)*
@@ -25,8 +28,8 @@ public:
     }
 
 private:
-
-    AST_BaseNode*   ParseCalc();
+    AST_BaseNode*   ParseStmt();
+    AST_BaseNode*   ParseExprStmt();
     AST_BaseNode*   ParseExpr();
     AST_BaseNode*   ParseEquality();
     AST_BaseNode*   ParseRelational();
@@ -42,6 +45,10 @@ private:
 
     void Advance(){
         lexer.GetNext(token);
+    }
+
+    void Advance(const char* inChar){
+        lexer.GetNext(token, inChar);
     }
 
     bool IsNextTokenOfType(Token::TokenType tokenType){

@@ -1,17 +1,25 @@
 #include "chilang/Parser/Parser.h"
 
 AST_BaseNode* Parser::Parse(){
-    AST_BaseNode* tree = ParseCalc();
+    AST_BaseNode* tree = ParseStmt();
     // IsNextTokenOfType(Token::kEOI);
     return tree;
 }
 
-AST_BaseNode* Parser::ParseCalc(){
-    return ParseExpr();
+AST_BaseNode* Parser::ParseStmt(){
+    return ParseExprStmt();
 }
 
-// 解析表达式
-// expr = equality
+// 解析语句
+// stmt = exprStmt
+AST_BaseNode* Parser::ParseExprStmt(){
+    AST_BaseNode* node = new AST_newBinaryNode(AST_BaseNode::ND_EXPR_STMT, ParseExpr(), NULL);
+    Advance(";");
+    return node;
+}
+
+// 解析表达式语句
+// exprStmt = expr ";"
 AST_BaseNode* Parser::ParseExpr(){
     return ParseEquality();
 }
@@ -141,9 +149,9 @@ AST_BaseNode* Parser::ParseUnary(){
 AST_BaseNode* Parser::ParsePrimary(){
     AST_BaseNode* left = NULL;
     if(token.Is(Token::TK_LEFTPAREN)){
-        Advance();
+        Advance("(");
         left = ParseExpr();
-        Advance();
+        Advance(")");
     }
     if(token.Is(Token::TK_NUM)){
         left = new AST_newNumNode(AST_BaseNode::ND_NUM, token.GetValue());

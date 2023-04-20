@@ -19,20 +19,21 @@ public:
 class AST_BaseNode{
 public:
     enum AST_NodeKind{
-        ND_EXP, // 表达式节点
-        ND_ADD, // 加操作节点
-        ND_SUB, // 减操作节点
-        ND_MUL, // 乘操作节点
-        ND_DIV, // 除操作节点
-        ND_EQ,  // ==
-        ND_NE,  // !=
-        ND_LT,  // <
-        ND_GT,  // >
-        ND_LE,  // <=
-        ND_GE,  // >=
-        ND_POS, // 正号+
-        ND_NEG, // 负号-
-        ND_NUM, // 整形
+        ND_EXP,         // 表达式节点
+        ND_ADD,         // 加操作节点
+        ND_SUB,         // 减操作节点
+        ND_MUL,         // 乘操作节点
+        ND_DIV,         // 除操作节点
+        ND_POS,         // 正号+
+        ND_NEG,         // 负号-
+        ND_EQ,          // ==
+        ND_NE,          // !=
+        ND_LT,          // <
+        ND_GT,          // >
+        ND_LE,          // <=
+        ND_GE,          // >=
+        ND_EXPR_STMT,   // 表达式语句
+        ND_NUM,         // 整形
     };
 
     virtual ~AST_BaseNode(){
@@ -157,6 +158,9 @@ public:
                 break;
             case ND_GE:
                 SetSymble(">= ND_GE");
+                break;
+            case ND_EXPR_STMT:
+                SetSymble("EXPR_STMT");
                 break;
             default:
                 break;

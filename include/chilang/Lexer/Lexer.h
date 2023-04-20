@@ -23,6 +23,7 @@ public:
         TK_GE,          // >=
         TK_COMMA,       // 逗号 ,
         TK_COLON,       // 冒号 :
+        TK_SEMI,        // 分号 ;
         TK_LEFTPAREN,   // 左圆括号 (
         TK_RIGHTPAREN,  // 右圆括号 )
         TK_NUM,         // 数字
@@ -96,6 +97,9 @@ public:
 
     //获取下一个Token
     void GetNext(Token& token);
+
+    //获取下一个指定的Token
+    void GetNext(Token& token, const char* inChar);
 
 private:
     //初始化新的Token

@@ -7,6 +7,11 @@ void Lexer::GetNext(Token& token){
         ++bufferPtr;
     }
 
+    if(!strncmp(bufferPtr, ";", strlen(";"))){
+        InitializeToken(token, bufferPtr + 1, Token::TK_SEMI);
+        return;
+    }
+
     if (!*bufferPtr){
         token.SetType(Token::TK_EOF);
         return;
@@ -68,6 +73,13 @@ void Lexer::GetNext(Token& token){
         }
         return;
     }
+}
+
+void Lexer::GetNext(Token& token, const char* inChar){
+    if(strncmp(bufferPtr, inChar, strlen(inChar))){
+        //error
+    }
+    this->GetNext(token);
 }
 
 void Lexer::InitializeToken(Token& token, const char* tokenEnd, Token::TokenType type){
