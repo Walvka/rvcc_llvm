@@ -42,13 +42,13 @@ public:
     virtual void Accept(ASTVisitor& visitor) = 0;
 
     //设置节点的左枝
-    void SetLeft(AST_BaseNode* inLeftExpr){
-        this->left = inLeftExpr;
+    void SetLeft(std::unique_ptr<AST_BaseNode> inLeftExpr){
+        this->left = std::move(inLeftExpr);
     }
 
     //设置节点的右枝
-    void SetRight(AST_BaseNode* inRightExpr){
-        this->right = inRightExpr;
+    void SetRight(std::unique_ptr<AST_BaseNode> inRightExpr){
+        this->right = std::move(inRightExpr);
     }
 
     //设置节点的类型
@@ -72,13 +72,13 @@ public:
     }
 
     //获取节点的左枝
-    AST_BaseNode* GetLeft(){
-        return this->left;
+    std::unique_ptr<AST_BaseNode> GetLeft(){
+        return std::move(this->left);
     }
 
     //获取节点的右枝
-    AST_BaseNode* GetRight(){
-        return this->right;
+    std::unique_ptr<AST_BaseNode> GetRight(){
+        return std::move(this->right);
     }
 
     //获取节点的类型
@@ -102,8 +102,8 @@ public:
     }
 
 private:
-    AST_BaseNode*       left;
-    AST_BaseNode*       right;
+    std::unique_ptr<AST_BaseNode>       left;
+    std::unique_ptr<AST_BaseNode>       right;
     AST_NodeKind        nodetype;     // AST的节点类型
     llvm::StringRef     symble;       // AST的节点类型字符串
 
@@ -116,11 +116,11 @@ private:
 class AST_newBinaryNode : public AST_BaseNode
 {
 public:
-    AST_newBinaryNode(AST_NodeKind Nodekind, AST_BaseNode* inLeftExpr, AST_BaseNode* inRightExpr){
+    AST_newBinaryNode(AST_NodeKind Nodekind, std::unique_ptr<AST_BaseNode> inLeftExpr, std::unique_ptr<AST_BaseNode> inRightExpr){
         SetNodeType(Nodekind);
         SetNodeName("Expr newBinary Node");
-        SetLeft(inLeftExpr);
-        SetRight(inRightExpr);
+        SetLeft(std::move(inLeftExpr));
+        SetRight(std::move(inRightExpr));
         switch (Nodekind)
         {
             case ND_ADD:

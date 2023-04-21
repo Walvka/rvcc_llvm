@@ -1,45 +1,45 @@
 #include "chilang/Parser/Parser.h"
 
-AST_BaseNode* Parser::Parse(){
-    AST_BaseNode* tree = ParseStmt();
+std::unique_ptr<AST_BaseNode> Parser::Parse(){
+    std::unique_ptr<AST_BaseNode> tree = std::move(ParseStmt());
     // IsNextTokenOfType(Token::kEOI);
     return tree;
 }
 
-AST_BaseNode* Parser::ParseStmt(){
+std::unique_ptr<AST_BaseNode> Parser::ParseStmt(){
     return ParseExprStmt();
 }
 
 // 解析语句
 // stmt = exprStmt
-AST_BaseNode* Parser::ParseExprStmt(){
-    AST_BaseNode* node = new AST_newBinaryNode(AST_BaseNode::ND_EXPR_STMT, ParseExpr(), NULL);
+std::unique_ptr<AST_BaseNode> Parser::ParseExprStmt(){
+    std::unique_ptr<AST_BaseNode> node = std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_EXPR_STMT, std::move(ParseExpr()), nullptr);
     Advance(";");
     return node;
 }
 
 // 解析表达式语句
 // exprStmt = expr ";"
-AST_BaseNode* Parser::ParseExpr(){
+std::unique_ptr<AST_BaseNode> Parser::ParseExpr(){
     return ParseEquality();
 }
 
 // 解析相等性
 // equality = relational ("==" relational | "!=" relational)*
-AST_BaseNode*  Parser::ParseEquality(){
+std::unique_ptr<AST_BaseNode>  Parser::ParseEquality(){
     // relational
-    AST_BaseNode* left = ParseRelational();
+    std::unique_ptr<AST_BaseNode> left = std::move(ParseRelational());
     // ("==" relational | "!=" relational)*
     while(token.IsPUNCT()){
         if(token.Is(Token::TK_EQ)){
             Advance();
-            AST_BaseNode* right = ParseRelational();
-            left = new AST_newBinaryNode(AST_BaseNode::ND_EQ, left, right);
+            std::unique_ptr<AST_BaseNode> right = std::move(ParseRelational());
+            left = std::move(std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_EQ, std::move(left), std::move(right)));
         }
         else if(token.Is(Token::TK_NE)){
             Advance();
-            AST_BaseNode* right = ParseRelational();
-            left = new AST_newBinaryNode(AST_BaseNode::ND_NE, left, right);
+            std::unique_ptr<AST_BaseNode> right = std::move(ParseRelational());
+            left = std::move(std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_NE, std::move(left), std::move(right)));
         }
         else{
             break;
@@ -50,30 +50,30 @@ AST_BaseNode*  Parser::ParseEquality(){
 
 // 解析比较关系
 // relational = add ("<" add | "<=" add | ">" add | ">=" add)*
-AST_BaseNode*   Parser::ParseRelational(){
+std::unique_ptr<AST_BaseNode> Parser::ParseRelational(){
     // add
-    AST_BaseNode* left = ParseAdd();
+    std::unique_ptr<AST_BaseNode> left = std::move(ParseAdd());
     // ("<" add | "<=" add | ">" add | ">=" add)*
     while(token.IsPUNCT()){
         if(token.Is(Token::TK_LT)){
             Advance();
-            AST_BaseNode* right = ParseAdd();
-            left = new AST_newBinaryNode(AST_BaseNode::ND_LT, left, right);
+            std::unique_ptr<AST_BaseNode> right = std::move(ParseAdd());
+            left = std::move(std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_LT, std::move(left), std::move(right)));
         }
         else if(token.Is(Token::TK_GT)){
             Advance();
-            AST_BaseNode* right = ParseAdd();
-            left = new AST_newBinaryNode(AST_BaseNode::ND_GT, left, right);
+            std::unique_ptr<AST_BaseNode> right = ParseAdd();
+            left = std::move(std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_GT, std::move(left), std::move(right)));
         }
         else if(token.Is(Token::TK_LE)){
             Advance();
-            AST_BaseNode* right = ParseAdd();
-            left = new AST_newBinaryNode(AST_BaseNode::ND_LE, left, right);
+            std::unique_ptr<AST_BaseNode> right = ParseAdd();
+            left = std::move(std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_LE, std::move(left), std::move(right)));
         }
         else if(token.Is(Token::TK_GE)){
             Advance();
-            AST_BaseNode* right = ParseAdd();
-            left = new AST_newBinaryNode(AST_BaseNode::ND_GE, left, right);
+            std::unique_ptr<AST_BaseNode> right = ParseAdd();
+            left = std::move(std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_GE, std::move(left), std::move(right)));
         }
         else{
             break;
@@ -84,18 +84,18 @@ AST_BaseNode*   Parser::ParseRelational(){
 
 // 解析加减
 // add = mul ("+" mul | "-" mul)*
-AST_BaseNode* Parser::ParseAdd(){
-    AST_BaseNode* left = ParseMul();
+std::unique_ptr<AST_BaseNode> Parser::ParseAdd(){
+    std::unique_ptr<AST_BaseNode> left = std::move(ParseMul());
     while(token.IsPUNCT()){
         if(token.Is(Token::TK_PLUS)){
             Advance();
-            AST_BaseNode* right = ParseMul();
-            left = new AST_newBinaryNode(AST_BaseNode::ND_ADD, left, right);
+            std::unique_ptr<AST_BaseNode> right = std::move(ParseMul());
+            left = std::move(std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_ADD, std::move(left), std::move(right)));
         }
         else if(token.Is(Token::TK_MINUS)){
             Advance();
-            AST_BaseNode* right = ParseMul();
-            left = new AST_newBinaryNode(AST_BaseNode::ND_SUB, left, right);
+            std::unique_ptr<AST_BaseNode> right = std::move(ParseMul());
+            left = std::move(std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_SUB, std::move(left), std::move(right)));
         }
         else{
             break;
@@ -106,19 +106,19 @@ AST_BaseNode* Parser::ParseAdd(){
 
 // 解析乘除
 // mul = unary ("*" unary | "/" unary)*
-AST_BaseNode* Parser::ParseMul(){
+std::unique_ptr<AST_BaseNode> Parser::ParseMul(){
     // 解析一元运算
-    AST_BaseNode* left = ParseUnary();
+    std::unique_ptr<AST_BaseNode> left = std::move(ParseUnary());
     while(token.IsPUNCT()){
         if(token.Is(Token::TK_MUL)){
             Advance();
-            AST_BaseNode* right = ParseUnary();
-            left = new AST_newBinaryNode(AST_BaseNode::ND_MUL, left, right);
+            std::unique_ptr<AST_BaseNode> right = std::move(ParseUnary());
+            left = std::move(std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_MUL, std::move(left), std::move(right)));
         }
         else if(token.Is(Token::TK_DIV)){
             Advance();
-            AST_BaseNode* right = ParseUnary();
-            left = new AST_newBinaryNode(AST_BaseNode::ND_DIV, left, right);
+            std::unique_ptr<AST_BaseNode> right = std::move(ParseUnary());
+            left = std::move(std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_DIV, std::move(left), std::move(right)));
         }
         else{
             break;
@@ -128,33 +128,32 @@ AST_BaseNode* Parser::ParseMul(){
 }
 
 //解析一元运算符
-AST_BaseNode* Parser::ParseUnary(){
-    AST_BaseNode* left = NULL;
+std::unique_ptr<AST_BaseNode> Parser::ParseUnary(){
     if(token.Is(Token::TK_PLUS)){
         Advance();
-        left = ParseUnary();
-        return new AST_newBinaryNode(AST_BaseNode::ND_POS, left, NULL);
+        std::unique_ptr<AST_BaseNode> left = std::move(ParseUnary());
+        return std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_POS, std::move(left), nullptr);
     }
     if(token.Is(Token::TK_MINUS)){
         Advance();
-        left = ParseUnary();
-        return new AST_newBinaryNode(AST_BaseNode::ND_NEG, left, NULL);
+        std::unique_ptr<AST_BaseNode> left = std::move(ParseUnary());
+        return std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_NEG, std::move(left), nullptr);
     }
-    left = ParsePrimary();
+    std::unique_ptr<AST_BaseNode> left = std::move(ParsePrimary());
     return left;
 }
 
 // 解析括号、数字
 // primary = "(" expr ")" | num
-AST_BaseNode* Parser::ParsePrimary(){
-    AST_BaseNode* left = NULL;
+std::unique_ptr<AST_BaseNode> Parser::ParsePrimary(){
+    std::unique_ptr<AST_BaseNode> left = nullptr;
     if(token.Is(Token::TK_LEFTPAREN)){
         Advance("(");
-        left = ParseExpr();
+        left = std::move(ParseExpr());
         Advance(")");
     }
     if(token.Is(Token::TK_NUM)){
-        left = new AST_newNumNode(AST_BaseNode::ND_NUM, token.GetValue());
+        left = std::move(std::make_unique<AST_newNumNode>(AST_BaseNode::ND_NUM, token.GetValue()));
         Advance();
     }
     return left;

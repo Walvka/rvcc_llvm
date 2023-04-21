@@ -25,6 +25,14 @@ void Lexer::GetNext(Token& token){
         InitializeToken(token, end, Token::TK_NUM);
         return;
     }
+    else if(std::isalpha(*bufferPtr)||(!strncmp(bufferPtr, "_", strlen("_")))){
+        const char* end = bufferPtr + 1;
+            while(std::isdigit(*end)||std::isalpha(*end)||(!strncmp(end, "_", strlen("_")))){
+            ++end;
+        }
+        InitializeToken(token, end, Token::TK_IDENT);
+        return;
+    }
     else{
         if(!strncmp(bufferPtr, "==", strlen("=="))){
             InitializeToken(token, bufferPtr + 2, Token::TK_EQ);

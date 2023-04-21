@@ -21,22 +21,22 @@ public:
         Advance();
     }
 
-    AST_BaseNode* Parse();
+    std::unique_ptr<AST_BaseNode> Parse();
 
     bool HasError(){
         return hasError;
     }
 
 private:
-    AST_BaseNode*   ParseStmt();
-    AST_BaseNode*   ParseExprStmt();
-    AST_BaseNode*   ParseExpr();
-    AST_BaseNode*   ParseEquality();
-    AST_BaseNode*   ParseRelational();
-    AST_BaseNode*   ParseAdd();
-    AST_BaseNode*   ParseMul();
-    AST_BaseNode*   ParseUnary();
-    AST_BaseNode*   ParsePrimary();
+    std::unique_ptr<AST_BaseNode>   ParseStmt();
+    std::unique_ptr<AST_BaseNode>   ParseExprStmt();
+    std::unique_ptr<AST_BaseNode>   ParseExpr();
+    std::unique_ptr<AST_BaseNode>   ParseEquality();
+    std::unique_ptr<AST_BaseNode>   ParseRelational();
+    std::unique_ptr<AST_BaseNode>   ParseAdd();
+    std::unique_ptr<AST_BaseNode>   ParseMul();
+    std::unique_ptr<AST_BaseNode>   ParseUnary();
+    std::unique_ptr<AST_BaseNode>   ParsePrimary();
 
     void AddError(){
         llvm::errs() << "Unexpected: " << token.GetText() << "\n";

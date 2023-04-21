@@ -11,6 +11,7 @@ public:
 
     // 为每个终结符都设置种类来表示
     enum TokenType{
+        TK_IDENT,       // 标记符，可以为变量名、函数名等
         TK_PLUS,        // 运算符 +
         TK_MINUS,       // 运算符 -
         TK_MUL,         // 运算符 *
