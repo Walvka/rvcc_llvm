@@ -1,8 +1,10 @@
 #pragma once
 
 #include "chilang/Parser/AST.h"
+#include "chilang/Parser/Parser.h"
 
+//生成ir指令
 class IRGenerator{
 public:
-    void Generate(std::unique_ptr<AST_BaseNode> tree);
+    void Generate(Parser& parser);
 };

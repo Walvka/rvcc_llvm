@@ -34,21 +34,23 @@ namespace
             int32Zero = ConstantInt::get(int32Type, 0, true);
         }
 
-        /// CreateEntryBlockAlloca - Create an alloca instruction in the entry block of
-        /// the function.  This is used for mutable variables etc.
+        //生成一个Alloca，用来生成变量
         AllocaInst *CreateEntryBlockAlloca(Function *TheFunction, StringRef VarName){
-            IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
-            return TmpB.CreateAlloca(Type::getInt32Ty(module->getContext()), nullptr, VarName);
+            //IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
+            return builder.CreateAlloca(Type::getInt32Ty(module->getContext()), nullptr, VarName);
         }
 
-        void Generate(std::unique_ptr<AST_BaseNode> tree){
+        void Generate(Parser& parser){
             FunctionType* mainFunctionType = FunctionType::get(int32Type, {int32Type}, false);
             Function* mainFunction = Function::Create(mainFunctionType, GlobalValue::ExternalLinkage, "main", module);
             BasicBlock* basicBlock = BasicBlock::Create(module->getContext(), "entry", mainFunction);
             curfunction = mainFunction;
             builder.SetInsertPoint(basicBlock);
 
-            tree->Accept(*this);
+            while(!parser.ParseTreeIsEnd()){
+                std::unique_ptr<AST_BaseNode> tree = std::move(parser.GetParseTree());
+                tree->Accept(*this);
+            }
 
             FunctionType* calculatorWriteFunctionType = FunctionType::get(voidType, {int32Type}, false);
             Function* calculatorWriteFunction = Function::Create(calculatorWriteFunctionType, GlobalValue::ExternalLinkage, "CalculatorWrite", module);
@@ -133,20 +135,21 @@ namespace
             if(NamedValues.find(node.GetNodeVar())==NamedValues.end()){
                 Alloca = CreateEntryBlockAlloca(curfunction, node.GetNodeVar());
                 NamedValues[node.GetNodeVar()] = Alloca;
+                value = ConstantInt::get(int32Type, 0, true);
             }
             else{
                 Alloca = NamedValues[node.GetNodeVar()];
+                value = builder.CreateLoad(Alloca->getAllocatedType(), Alloca, node.GetNodeVar());
             }
-            value = ConstantInt::get(int32Type, 0, true);
         }
 
     };
 } // namespace
 
-void IRGenerator::Generate(std::unique_ptr<AST_BaseNode> tree){
+void IRGenerator::Generate(Parser& parser){
     LLVMContext context;
     Module* module = new Module("chilang.Module", context);
     IRGeneratorImplementation generator(module);
-    generator.Generate(std::move(tree));
+    generator.Generate(parser);
     module->print(outs(), nullptr);
 }

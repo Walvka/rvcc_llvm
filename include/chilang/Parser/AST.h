@@ -132,6 +132,7 @@ private:
 };
 
 
+//二叉节点定义
 class AST_newBinaryNode : public AST_BaseNode
 {
 public:
@@ -174,9 +175,6 @@ public:
             case ND_GE:
                 this->SetSymble(">= ND_GE");
                 break;
-            case ND_EXPR_STMT:
-                this->SetSymble("EXPR_STMT");
-                break;
             default:
                 break;
         }
@@ -187,7 +185,7 @@ public:
     }
 };
 
-
+//单叉节点定义
 class AST_newUnaryNode : public AST_BaseNode
 {
 public:
@@ -198,6 +196,9 @@ public:
         this->SetRight(nullptr);
         switch (Nodekind)
         {
+            case ND_EXPR_STMT:
+                this->SetSymble("EXPR_STMT");
+                break;
             case ND_POS:
                 this->SetSymble("+_ POS");
                 break;
@@ -214,6 +215,7 @@ public:
     }
 };
 
+//新的变量节点定义
 class AST_newVarNode : public AST_BaseNode{
 public:
     AST_newVarNode(AST_NodeKind inType, llvm::StringRef inVar){
@@ -234,6 +236,7 @@ private:
     int first_def;//指明此节点是否是初次def
 };
 
+//新的数字节点定义
 class AST_newNumNode : public AST_BaseNode{
 public:
     AST_newNumNode(AST_NodeKind inType, int inVal){

@@ -27,7 +27,7 @@ std::unique_ptr<AST_BaseNode> Parser::ParseStmt(){
 // 解析语句
 // stmt = exprStmt
 std::unique_ptr<AST_BaseNode> Parser::ParseExprStmt(){
-    std::unique_ptr<AST_BaseNode> node = std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_EXPR_STMT, std::move(ParseExpr()), nullptr);
+    std::unique_ptr<AST_BaseNode> node = std::make_unique<AST_newUnaryNode>(AST_BaseNode::ND_EXPR_STMT, std::move(ParseExpr()));
     Advance(";");
     return node;
 }

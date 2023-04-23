@@ -74,19 +74,8 @@ int main(int argc, const char** argv)
     Parser parser(lexer);
     parser.Parse();
 
-    while(!parser.ParseTreeIsEnd()){
-        std::unique_ptr<AST_BaseNode> tree = std::move(parser.GetParseTree());
-        if (!tree || parser.HasError())
-        {
-            llvm::errs() << "Syntax errors occured\n";
-            return 1;
-        }
-        //ASTPrinter printer;
-        //tree->Accept(printer);
-
-        IRGenerator irGenerator;
-        irGenerator.Generate(std::move(tree));
-    }
-
+    IRGenerator irGenerator;
+    irGenerator.Generate(parser);
+    
     return 0;
 }
