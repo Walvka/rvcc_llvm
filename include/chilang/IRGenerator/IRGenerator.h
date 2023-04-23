@@ -4,5 +4,5 @@
 
 class IRGenerator{
 public:
-    void Generate(AST_BaseNode* Tree);
+    void Generate(std::unique_ptr<AST_BaseNode> tree);
 };

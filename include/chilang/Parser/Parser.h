@@ -8,7 +8,8 @@
 // program = stmt*
 // stmt = exprStmt
 // exprStmt = expr ";"
-// expr = equality
+// expr = assign
+// assign = equality ("=" assign)?
 // equality = relational ("==" relational | "!=" relational)*
 // relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 // add = mul ("+" mul | "-" mul)*
@@ -21,8 +22,11 @@ public:
         Advance();
     }
 
-    std::unique_ptr<AST_BaseNode> Parse();
+    void Parse();
 
+    std::unique_ptr<AST_BaseNode> GetParseTree();
+    bool ParseTreeIsEnd();
+    
     bool HasError(){
         return hasError;
     }
@@ -31,6 +35,7 @@ private:
     std::unique_ptr<AST_BaseNode>   ParseStmt();
     std::unique_ptr<AST_BaseNode>   ParseExprStmt();
     std::unique_ptr<AST_BaseNode>   ParseExpr();
+    std::unique_ptr<AST_BaseNode>   ParseAssign();
     std::unique_ptr<AST_BaseNode>   ParseEquality();
     std::unique_ptr<AST_BaseNode>   ParseRelational();
     std::unique_ptr<AST_BaseNode>   ParseAdd();
@@ -39,7 +44,7 @@ private:
     std::unique_ptr<AST_BaseNode>   ParsePrimary();
 
     void AddError(){
-        llvm::errs() << "Unexpected: " << token.GetText() << "\n";
+        llvm::errs() << "Unexpected: " << token.GetRefText() << "\n";
         hasError = true;
     }
 
@@ -71,4 +76,7 @@ private:
     Lexer& lexer;
     Token token;
     bool hasError;
+
+    std::queue<AST_BaseNode*>       AST_tree;//AST队列
+    std::unordered_set<std::string> LocalVar;//本地局部变量
 };

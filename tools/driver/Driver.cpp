@@ -4,20 +4,12 @@
 #include "chilang/Basic/Version.h"
 #include "chilang/Lexer/Lexer.h"
 #include "chilang/Parser/Parser.h"
+#include "chilang/IRGenerator/IRGenerator.h"
 
 namespace{
     class ASTPrinter : public ASTVisitor{
     public:
-        virtual void Visit(AST_newNumNode& node) override{
-            llvm::outs() <<  "+++++++++++++" << "\n";
-            llvm::outs() <<  "NodeType:  " << node.GetNodeType()  << "\n";
-            llvm::outs() <<  "NodeName:  " << node.GetNodeName()  << "\n";
-            llvm::outs() << "NodeValue:  " << node.GetNodeValue() << "\n";
-            llvm::outs() <<  "+++++++++++++" << "\n";
-        };
-
-        virtual void Visit(AST_newBinaryNode& node) override
-        {
+        virtual void Visit(AST_newBinaryNode& node) override{
             llvm::outs() <<  "+++++++++++++" << "\n";
             llvm::outs() <<  "NodeType:  " << node.GetNodeType()  << "\n";
             llvm::outs() <<  "NodeName:  " << node.GetNodeName()  << "\n";
@@ -36,6 +28,37 @@ namespace{
             }
             llvm::outs() <<  "+++++++++++++" << "\n";
         };
+
+        virtual void Visit(AST_newUnaryNode& node) override{
+            llvm::outs() <<  "+++++++++++++" << "\n";
+            llvm::outs() <<  "NodeType:  " << node.GetNodeType()  << "\n";
+            llvm::outs() <<  "NodeName:  " << node.GetNodeName()  << "\n";
+            llvm::outs() << "Symble:  " << node.GetSymble() << "\n";
+            llvm::outs() << "UnaryOp: " << "\n";
+
+            std::unique_ptr<AST_BaseNode> left_buf = std::move(node.GetLeft());
+            if(left_buf!=nullptr){
+                llvm::outs() << "Left" << "\n";
+                left_buf->Accept(*this);
+            }
+            llvm::outs() <<  "+++++++++++++" << "\n";
+        };
+        
+        virtual void Visit(AST_newVarNode& node) override{
+            llvm::outs() <<  "+++++++++++++" << "\n";
+            llvm::outs() <<  "NodeType:  " << node.GetNodeType()  << "\n";
+            llvm::outs() <<  "NodeName:  " << node.GetNodeName()  << "\n";
+            llvm::outs() << "VarName: " << node.GetNodeVar() <<"\n";
+            llvm::outs() <<  "+++++++++++++" << "\n";
+        };
+
+        virtual void Visit(AST_newNumNode& node) override{
+            llvm::outs() <<  "+++++++++++++" << "\n";
+            llvm::outs() <<  "NodeType:  " << node.GetNodeType()  << "\n";
+            llvm::outs() <<  "NodeName:  " << node.GetNodeName()  << "\n";
+            llvm::outs() << "NodeValue:  " << node.GetNodeValue() << "\n";
+            llvm::outs() <<  "+++++++++++++" << "\n";
+        };
     };
 }
 
@@ -49,15 +72,21 @@ int main(int argc, const char** argv)
 
     Lexer lexer(input);
     Parser parser(lexer);
-    std::unique_ptr<AST_BaseNode> tree = std::move(parser.Parse());
-    if (!tree || parser.HasError())
-    {
-        llvm::errs() << "Syntax errors occured\n";
-        return 1;
-    }
+    parser.Parse();
 
-    ASTPrinter printer;
-    tree->Accept(printer);
+    while(!parser.ParseTreeIsEnd()){
+        std::unique_ptr<AST_BaseNode> tree = std::move(parser.GetParseTree());
+        if (!tree || parser.HasError())
+        {
+            llvm::errs() << "Syntax errors occured\n";
+            return 1;
+        }
+        //ASTPrinter printer;
+        //tree->Accept(printer);
+
+        IRGenerator irGenerator;
+        irGenerator.Generate(std::move(tree));
+    }
 
     return 0;
 }

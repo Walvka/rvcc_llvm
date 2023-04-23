@@ -1,129 +1,152 @@
-#include "llvm/ADT/StringMap.h"
+#include <map>
+
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/Support/raw_ostream.h"
+
 #include "chilang/IRGenerator/IRGenerator.h"
 
 using namespace llvm;
 
 namespace
 {
-    class IRGeneratorImplementation : public ASTVisitor
-    {
+    class IRGeneratorImplementation : public ASTVisitor{
+        Function* curfunction;
         Module* module;
         IRBuilder<> builder;
         Type* voidType;
         Type* int32Type;
-        Type* int8PtrType;
-        Type* int8PtrPtrType;
+
+        
         Constant* int32Zero;
 
         Value* value;
-        StringMap<Value*> nameMap;
+
+        AllocaInst *Alloca;
+        std::map<StringRef, AllocaInst *> NamedValues;
 
     public:
-
         IRGeneratorImplementation(Module* inModule) :
             module(inModule),
-            builder(inModule->getContext())
-        {
+            builder(inModule->getContext()){
             voidType = Type::getVoidTy(module->getContext());
             int32Type = Type::getInt32Ty(module->getContext());
-            int8PtrType = Type::getInt8PtrTy(module->getContext());
-            int8PtrPtrType = int8PtrType->getPointerTo();
             int32Zero = ConstantInt::get(int32Type, 0, true);
         }
 
-        void Generate(AST_BaseNode* tree)
-        {
-            FunctionType* mainFunctionType = FunctionType::get(int32Type, {int32Type, int8PtrPtrType}, false);
+        /// CreateEntryBlockAlloca - Create an alloca instruction in the entry block of
+        /// the function.  This is used for mutable variables etc.
+        AllocaInst *CreateEntryBlockAlloca(Function *TheFunction, StringRef VarName){
+            IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
+            return TmpB.CreateAlloca(Type::getInt32Ty(module->getContext()), nullptr, VarName);
+        }
+
+        void Generate(std::unique_ptr<AST_BaseNode> tree){
+            FunctionType* mainFunctionType = FunctionType::get(int32Type, {int32Type}, false);
             Function* mainFunction = Function::Create(mainFunctionType, GlobalValue::ExternalLinkage, "main", module);
             BasicBlock* basicBlock = BasicBlock::Create(module->getContext(), "entry", mainFunction);
+            curfunction = mainFunction;
             builder.SetInsertPoint(basicBlock);
 
             tree->Accept(*this);
 
             FunctionType* calculatorWriteFunctionType = FunctionType::get(voidType, {int32Type}, false);
-            Function* calculatorWriteFunction = Function::Create(calculatorWriteFunctionType, GlobalValue::ExternalLinkage, "calc_write", module);
+            Function* calculatorWriteFunction = Function::Create(calculatorWriteFunctionType, GlobalValue::ExternalLinkage, "CalculatorWrite", module);
             builder.CreateCall(calculatorWriteFunctionType, calculatorWriteFunction, {value});
 
             builder.CreateRet(int32Zero);
         }
 
-/*
-        void Visit(Factor& node) override
+        void Visit(AST_newNumNode& node) override
         {
-            if (node.GetType() == Factor::kIdent)
-            {
-                value = nameMap[node.GetValue()];
+           value = ConstantInt::get(int32Type, node.GetNodeValue(), true);
+           return ;
+        };
+
+        void Visit(AST_newBinaryNode& node) override
+        {
+            Value* left;
+            Value* right;
+            std::unique_ptr<AST_BaseNode> left_buf = std::move(node.GetLeft());
+            if(left_buf!=nullptr){
+                left_buf->Accept(*this);
+                left = value;
             }
-            else
-            {
-                int intValue;
-                node.GetValue().getAsInteger(10, intValue);
-                value = ConstantInt::get(int32Type, intValue, true);
+        
+            std::unique_ptr<AST_BaseNode> right_buf = std::move(node.GetRight());
+            if(right_buf!=nullptr){
+                right_buf->Accept(*this);
+                right = value;
+            }
+            
+            switch (node.GetNodeType()){
+                case AST_BaseNode::ND_ADD:
+                    value = builder.CreateNSWAdd(left, right);
+                    break;
+
+                case AST_BaseNode::ND_SUB:
+                    value = builder.CreateNSWSub(left, right);
+                    break;
+
+                case AST_BaseNode::ND_MUL:
+                    value = builder.CreateNSWMul(left, right);
+                    break;
+
+                case AST_BaseNode::ND_DIV:
+                    value = builder.CreateSDiv(left, right);
+                    break;
+
+                case AST_BaseNode::ND_ASSIGN:
+                    if(right_buf!=nullptr){
+                        builder.CreateStore(right, Alloca);
+                    }
+                    else{
+                        builder.CreateStore(ConstantInt::get(int32Type, 0, true), Alloca);
+                    }
+                    
+                    break;
+
+                default:
+                    break;
             }
         };
 
-        void Visit(BinaryOp& node) override
-        {
+        void Visit(AST_newUnaryNode& node) override{
             node.GetLeft()->Accept(*this);
             Value* left = value;
 
-            node.GetRight()->Accept(*this);
-            Value* right = value;
+            switch (node.GetNodeType()){
+                case AST_BaseNode::ND_POS:
+                    value = builder.CreateNSWAdd(int32Zero, left);
+                    break;
 
-            switch (node.GetOperator())
-            {
-            case BinaryOp::kPlus:
-                value = builder.CreateNSWAdd(left, right);
-                break;
+                case AST_BaseNode::ND_NEG:
+                    value = builder.CreateNSWSub(int32Zero, left);
+                    break;
 
-            case BinaryOp::kMinus:
-                value = builder.CreateNSWSub(left, right);
-                break;
-
-            case BinaryOp::kMultiple:
-                value = builder.CreateNSWMul(left, right);
-                break;
-
-            case BinaryOp::kDivide:
-                value = builder.CreateSDiv(left, right);
-                break;
+                default:
+                    break;
             }
         };
 
-        void Visit(WithDeclaration& node) override
-        {
-            FunctionType* calculatorReadFunctionType = FunctionType::get(int32Type, {int8PtrType}, false);
-            Function* calculatorReadFunction =
-                Function::Create(calculatorReadFunctionType, GlobalValue::ExternalLinkage, "calc_read", module);
-            for (const auto& variable : node)
-            {
-                // Create call to calc_read function
-                Constant* strText = ConstantDataArray::getString(module->getContext(), variable);
-                GlobalVariable* str = new GlobalVariable(*module,
-                                                         strText->getType(),
-                                                         GlobalValue::PrivateLinkage,
-                                                         strText,
-                                                         Twine(variable).concat(".str"));
-                Value* ptr = builder.CreateInBoundsGEP(str, {int32Zero, int32Zero}, "ptr");
-                CallInst* call = builder.CreateCall(calculatorReadFunctionType, calculatorReadFunction, {ptr});
-
-                nameMap[variable] = call;
+        void Visit(AST_newVarNode& node) override{
+            if(NamedValues.find(node.GetNodeVar())==NamedValues.end()){
+                Alloca = CreateEntryBlockAlloca(curfunction, node.GetNodeVar());
+                NamedValues[node.GetNodeVar()] = Alloca;
             }
+            else{
+                Alloca = NamedValues[node.GetNodeVar()];
+            }
+            value = ConstantInt::get(int32Type, 0, true);
+        }
 
-            node.GetExpr()->Accept(*this);
-        };
-        */
     };
 } // namespace
 
-void IRGenerator::Generate(AST_BaseNode* tree)
-{
+void IRGenerator::Generate(std::unique_ptr<AST_BaseNode> tree){
     LLVMContext context;
-    Module* module = new Module("calc.expr", context);
+    Module* module = new Module("chilang.Module", context);
     IRGeneratorImplementation generator(module);
-    generator.Generate(tree);
+    generator.Generate(std::move(tree));
     module->print(outs(), nullptr);
 }

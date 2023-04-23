@@ -22,6 +22,7 @@ public:
         TK_GT,          // >
         TK_LE,          // <=
         TK_GE,          // >=
+        TK_ASSIGN,      // 赋值
         TK_COMMA,       // 逗号 ,
         TK_COLON,       // 冒号 :
         TK_SEMI,        // 分号 ;
@@ -39,7 +40,7 @@ public:
     }
 
     //设置Token的字符串
-    void SetText(llvm::StringRef inText){
+    void SetRefText(llvm::StringRef inText){
         text = inText;
     }
 
@@ -54,7 +55,7 @@ public:
     }
 
     //获取Token的字符串
-    llvm::StringRef GetText() const{
+    llvm::StringRef GetRefText() const{
         return text;
     }
 

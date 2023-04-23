@@ -50,7 +50,6 @@ void Lexer::GetNext(Token& token){
             InitializeToken(token, bufferPtr + 2, Token::TK_GE);
             return;
         }
-
         switch (*bufferPtr){
         case '+':
             InitializeToken(token, bufferPtr + 1, Token::TK_PLUS);
@@ -76,6 +75,9 @@ void Lexer::GetNext(Token& token){
         case ')':
             InitializeToken(token, bufferPtr + 1, Token::TK_RIGHTPAREN);
             break;
+        case '=':
+            InitializeToken(token, bufferPtr + 1, Token::TK_ASSIGN);
+            break;
         default:
             InitializeToken(token, bufferPtr + 1, Token::TK_UKNOWN);
         }
@@ -93,7 +95,7 @@ void Lexer::GetNext(Token& token, const char* inChar){
 void Lexer::InitializeToken(Token& token, const char* tokenEnd, Token::TokenType type){
     char* buf;
     token.SetType(type);
-    token.SetText(llvm::StringRef(bufferPtr, tokenEnd - bufferPtr));
+    token.SetRefText(llvm::StringRef(bufferPtr, tokenEnd - bufferPtr));
     if(type==Token::TK_NUM){
         token.SetValue(strtoul(bufferPtr, &buf, 10));
     }

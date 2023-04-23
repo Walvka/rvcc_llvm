@@ -1,9 +1,23 @@
 #include "chilang/Parser/Parser.h"
 
-std::unique_ptr<AST_BaseNode> Parser::Parse(){
-    std::unique_ptr<AST_BaseNode> tree = std::move(ParseStmt());
-    // IsNextTokenOfType(Token::kEOI);
-    return tree;
+void Parser::Parse(){
+    std::unique_ptr<AST_BaseNode> tree = nullptr;
+    while(!token.Is(Token::TK_EOF)){
+        tree = std::move(ParseStmt());
+        this->AST_tree.push(tree.get());
+        tree.release();
+    }
+    return;
+}
+
+bool Parser::ParseTreeIsEnd(){
+    return this->AST_tree.empty();
+}
+
+std::unique_ptr<AST_BaseNode> Parser::GetParseTree(){
+    std::unique_ptr<AST_BaseNode> buf = std::unique_ptr<AST_BaseNode>(this->AST_tree.front());
+    this->AST_tree.pop();
+    return buf;
 }
 
 std::unique_ptr<AST_BaseNode> Parser::ParseStmt(){
@@ -18,10 +32,24 @@ std::unique_ptr<AST_BaseNode> Parser::ParseExprStmt(){
     return node;
 }
 
-// 解析表达式语句
-// exprStmt = expr ";"
+// 解析表达式
+// expr = assign ";"
 std::unique_ptr<AST_BaseNode> Parser::ParseExpr(){
-    return ParseEquality();
+    return ParseAssign();
+}
+
+// 解析赋值
+// assign = equality ("=" assign)?
+std::unique_ptr<AST_BaseNode> Parser::ParseAssign(){
+    // equality
+    std::unique_ptr<AST_BaseNode> left = std::move(ParseEquality());
+    // 可能存在递归赋值，如a=b=1
+    // ("=" assign)?
+    if (token.Is(Token::TK_ASSIGN)){
+        Advance();
+        left = std::move(std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_ASSIGN, std::move(left), std::move(ParseAssign())));
+    }
+    return left;
 }
 
 // 解析相等性
@@ -132,19 +160,19 @@ std::unique_ptr<AST_BaseNode> Parser::ParseUnary(){
     if(token.Is(Token::TK_PLUS)){
         Advance();
         std::unique_ptr<AST_BaseNode> left = std::move(ParseUnary());
-        return std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_POS, std::move(left), nullptr);
+        return std::make_unique<AST_newUnaryNode>(AST_BaseNode::ND_POS, std::move(left));
     }
     if(token.Is(Token::TK_MINUS)){
         Advance();
         std::unique_ptr<AST_BaseNode> left = std::move(ParseUnary());
-        return std::make_unique<AST_newBinaryNode>(AST_BaseNode::ND_NEG, std::move(left), nullptr);
+        return std::make_unique<AST_newUnaryNode>(AST_BaseNode::ND_NEG, std::move(left));
     }
     std::unique_ptr<AST_BaseNode> left = std::move(ParsePrimary());
     return left;
 }
 
-// 解析括号、数字
-// primary = "(" expr ")" | num
+// 解析括号、数字、变量
+// primary = "(" expr ")" | ident｜ num
 std::unique_ptr<AST_BaseNode> Parser::ParsePrimary(){
     std::unique_ptr<AST_BaseNode> left = nullptr;
     if(token.Is(Token::TK_LEFTPAREN)){
@@ -154,6 +182,16 @@ std::unique_ptr<AST_BaseNode> Parser::ParsePrimary(){
     }
     if(token.Is(Token::TK_NUM)){
         left = std::move(std::make_unique<AST_newNumNode>(AST_BaseNode::ND_NUM, token.GetValue()));
+        Advance();
+    }
+    if(token.Is(Token::TK_IDENT)){
+        std::string var_string = token.GetRefText().str();
+        std::unique_ptr<AST_newVarNode> leftbuf = std::move(std::make_unique<AST_newVarNode>(AST_BaseNode::ND_VAR, token.GetRefText()));
+        if(this->LocalVar.find(var_string)==this->LocalVar.end()){
+            this->LocalVar.emplace(var_string);
+            leftbuf->SetIsFirstDef();
+        }
+        left = std::move(leftbuf);
         Advance();
     }
     return left;
