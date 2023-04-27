@@ -1,5 +1,7 @@
 #pragma once
 
+#include <list>
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/MemoryBuffer.h"
 
@@ -95,6 +97,8 @@ public:
     Lexer(const llvm::StringRef& Buffer){
         bufferStart = Buffer.begin();
         bufferPtr = bufferStart;
+        TokenListGenerater();
+        token_itor = token_list.begin();
     }
 
     //获取下一个Token
@@ -108,6 +112,11 @@ private:
     void InitializeToken(Token& token, const char* tokenEnd, Token::TokenType type);
 
 private:
+    void TokenListGenerater();  //tokenlist生成器
+    void GetNextToken(Token& token);//生成token
     const char* bufferStart;   //输入字符串的起始指针
     const char* bufferPtr;     //输入字符串的当前位置指针
+    
+    std::list<Token> token_list; //token列表
+    std::list<Token>::iterator token_itor;//token列表迭代器
 };

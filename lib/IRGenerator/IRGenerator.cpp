@@ -52,9 +52,9 @@ namespace
                 tree->Accept(*this);
             }
 
-            FunctionType* calculatorWriteFunctionType = FunctionType::get(voidType, {int32Type}, false);
-            Function* calculatorWriteFunction = Function::Create(calculatorWriteFunctionType, GlobalValue::ExternalLinkage, "CalculatorWrite", module);
-            builder.CreateCall(calculatorWriteFunctionType, calculatorWriteFunction, {value});
+            //FunctionType* calculatorWriteFunctionType = FunctionType::get(voidType, {int32Type}, false);
+            //Function* calculatorWriteFunction = Function::Create(calculatorWriteFunctionType, GlobalValue::ExternalLinkage, "CalculatorWrite", module);
+            //builder.CreateCall(calculatorWriteFunctionType, calculatorWriteFunction, {value});
 
             builder.CreateRet(int32Zero);
         }
@@ -99,13 +99,13 @@ namespace
                     break;
 
                 case AST_BaseNode::ND_ASSIGN:
+                    Alloca = NamedValues[left_buf->GetNodeVar()];
                     if(right_buf!=nullptr){
                         builder.CreateStore(right, Alloca);
                     }
                     else{
                         builder.CreateStore(ConstantInt::get(int32Type, 0, true), Alloca);
                     }
-                    
                     break;
 
                 default:

@@ -2,7 +2,16 @@
 #include <cctype>
 #include <string.h>
 
-void Lexer::GetNext(Token& token){
+//添加TokenList的原因是为了将来在token中添加更多的修饰而对token提前进行生成和管理
+void Lexer::TokenListGenerater(){
+    Token token_buf;
+    do{
+        GetNextToken(token_buf);
+        this->token_list.push_back(token_buf);
+    }while((token_buf.GetType()!=Token::TK_EOF)&&(token_buf.GetType()!=Token::TK_UKNOWN));
+}
+
+void Lexer::GetNextToken(Token& token){
     while (*bufferPtr && std::isspace(*bufferPtr)){
         ++bufferPtr;
     }
@@ -80,14 +89,21 @@ void Lexer::GetNext(Token& token){
             break;
         default:
             InitializeToken(token, bufferPtr + 1, Token::TK_UKNOWN);
+            llvm_unreachable("Lex:未知的符号");
         }
         return;
     }
 }
 
+void Lexer::GetNext(Token& token){
+    token = *token_itor;
+    token_itor++;
+    return;
+}
+
 void Lexer::GetNext(Token& token, const char* inChar){
-    if(strncmp(bufferPtr, inChar, strlen(inChar))){
-        //error
+    if(token.GetRefText().compare(inChar)){
+        llvm_unreachable("Lex:此符号不应出现在此位置");
     }
     this->GetNext(token);
 }
